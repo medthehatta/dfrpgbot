@@ -2,6 +2,7 @@ from functools import reduce
 import random
 import re
 import pickle
+import dfrpgcmds as dc
 
 class StressTrack(object):
   """
@@ -494,7 +495,7 @@ def run_command(st,nick,GAME,COMMANDS,phenny=None):
 
 def phenny_hook(phenny,input):
   #please let the closure work
-  run_command(str(input),input.nick,GAME,COMMANDS,phenny=phenny)
+  run_command(str(input),input.nick,GAME,dc.COMMANDS,phenny=phenny)
 phenny_hook.rule = r'.*'
 phenny_hook.threaded = False
   
