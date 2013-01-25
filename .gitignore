@@ -1,1 +1,3 @@
-dfrpgmon2.pyc
+*.pyc
+*.pkl
+
