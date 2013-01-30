@@ -2,7 +2,7 @@
 def c_cleanup(GAME,args,character,nick,flags): 
   GAME.cleanup()
   return "Stress, temporary aspects, and turn order cleared."
-def c_add_npc(GAME,args,character,nick,flags): return GAME.add(Character(args),nick)
+def c_add_npc(GAME,args,character,nick,flags): return GAME.add(GAME.mkcharacter(args),nick)
 def c_del_npc(GAME,args,character,nick,flags): 
   # lookup by argument first, so you don't need @
   character = GAME.lookup[args] or character

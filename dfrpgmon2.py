@@ -405,6 +405,10 @@ class FATEGAME(object):
     self.rolling = rolling
     self.order = order
 
+  def mkcharacter(self,name):
+    """Hack to let the dfrpgcmds access the Character class"""
+    return Character(name)
+
   def add(self,character,nick):
     self.lookup.add(character)
     self.lookup.alias_nick(str(character),nick)
