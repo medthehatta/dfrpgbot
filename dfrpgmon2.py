@@ -627,7 +627,7 @@ class FATEGAME(object):
       c.conflict_cleanup()
     return self
 
-def parse(s,rexes=[r'^\.(\S+)',r'\((\S+)\)',r'\@ (\S+)']):
+def parse(s,rexes=[r'^\.(\S+)',r'\((\S+)\)',r'\@(\S+)']):
   """
   Takes phenny input and returns the requested token
   matches, plus the rest of the stuff in the match
