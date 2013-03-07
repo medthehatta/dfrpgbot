@@ -246,11 +246,11 @@ class Aspect(object):
     self.name = str(name)
     self.persist = persist
     self.flags = []
-    self.flag_transformers = {"ConsMild":(["mild"],True)
-                             ,"ConsMod":(["moderate"],True)
-                             ,"ConsModerate":(["moderate"],True)
-                             ,"ConsSevere":(["severe"],True)
-                             ,"ConsSev":(["severe"],True)
+    self.flag_transformers = {"consmild":(["mild"],True)
+                             ,"consmod":(["moderate"],True)
+                             ,"consmoderate":(["moderate"],True)
+                             ,"conssevere":(["severe"],True)
+                             ,"conssev":(["severe"],True)
                              ,"fragile":(["f"],False)
                              ,"style":(["#","#"],None)
                              }
@@ -627,7 +627,7 @@ class FATEGAME(object):
       c.conflict_cleanup()
     return self
 
-def parse(s,rexes=[r'^\.(\S+)',r'\((\S+)\)',r'\@ (\S+)']):
+def parse(s,rexes=[r'^\.(\S+)',r'\((\S+)\)',r'\@(\S+)']):
   """
   Takes phenny input and returns the requested token
   matches, plus the rest of the stuff in the match
