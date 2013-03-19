@@ -143,6 +143,7 @@ COMMANDS = {\
 ,"npc-":c_del_npc
 ,"npcclean":c_npc_purge
 ,"npc#":c_npc_purge
+,"npc!":c_npc_purge
 ,"roll":c_roll
 ,"amend":c_amend
 ,"aspect+":c_add_aspect
