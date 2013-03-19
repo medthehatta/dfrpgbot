@@ -71,7 +71,7 @@ def c_refresh(GAME,args,character,nick,flags):
   for c in GAME.characters: c.fate.dorefresh()
   return "Ahhhhhhh.  Refreshing."
 def c_alias(GAME,args,character,nick,flags): 
-  GAME.lookup.alias(str(character),args)
+  GAME.lookup.alias(args,str(character))
   return "{0} is now also known as {1}".format(str(character),args)
 def c_im(GAME,args,character,nick,flags): 
   character = GAME.lookup[args] or character
@@ -519,7 +519,7 @@ class Lookup(object):
     t=target.lower()
     a=alias.lower()
     if t in self._aliases:
-      self._aliases[alias.lower()]=self._aliases[t]
+      self._aliases[a]=self._aliases[t]
       return self
 
   def alias_nick(self,target,nick):
@@ -627,7 +627,7 @@ class FATEGAME(object):
       c.conflict_cleanup()
     return self
 
-def parse(s,rexes=[r'^\.(\S+)',r'\((\S+)\)',r'\@(\S+)']):
+def parse(s,rexes=[r'^\.(\S+)',r'\((\S+)\)',r'\@\s*(\S+)']):
   """
   Takes phenny input and returns the requested token
   matches, plus the rest of the stuff in the match
