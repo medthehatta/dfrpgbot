@@ -441,7 +441,7 @@ class Character(object):
     return self
 
   def add_aspect(self,name,persist=False,flags=None):
-    if "#" not in flags and "fragile" not in flags and "style" not in flags: flags.append("#") # one free invoke
+    if "#" not in flags and "f" not in flags and "Fragile" not in flags and "fragile" not in flags and "style" not in flags: flags.append("#") # one free invoke
     self.aspects[name.lower()] = Aspect(name,flags,persist)
     return self
 
