@@ -71,7 +71,7 @@ def c_refresh(GAME,args,character,nick,flags):
   for c in GAME.characters: c.fate.dorefresh()
   return "Ahhhhhhh.  Refreshing."
 def c_alias(GAME,args,character,nick,flags): 
-  GAME.lookup.alias(str(character),args)
+  GAME.lookup.alias(args,str(character))
   return "{0} is now also known as {1}".format(str(character),args)
 def c_im(GAME,args,character,nick,flags): 
   character = GAME.lookup[args] or character
@@ -143,6 +143,7 @@ COMMANDS = {\
 ,"npc-":c_del_npc
 ,"npcclean":c_npc_purge
 ,"npc#":c_npc_purge
+,"npc!":c_npc_purge
 ,"roll":c_roll
 ,"amend":c_amend
 ,"aspect+":c_add_aspect
@@ -440,7 +441,7 @@ class Character(object):
     return self
 
   def add_aspect(self,name,persist=False,flags=None):
-    if "#" not in flags and "fragile" not in flags and "style" not in flags: flags.append("#") # one free invoke
+    if "#" not in flags and "f" not in flags and "Fragile" not in flags and "fragile" not in flags and "style" not in flags: flags.append("#") # one free invoke
     self.aspects[name.lower()] = Aspect(name,flags,persist)
     return self
 
@@ -519,7 +520,7 @@ class Lookup(object):
     t=target.lower()
     a=alias.lower()
     if t in self._aliases:
-      self._aliases[alias.lower()]=self._aliases[t]
+      self._aliases[a]=self._aliases[t]
       return self
 
   def alias_nick(self,target,nick):
@@ -627,7 +628,7 @@ class FATEGAME(object):
       c.conflict_cleanup()
     return self
 
-def parse(s,rexes=[r'^\.(\S+)',r'\((\S+)\)',r'\@(\S+)']):
+def parse(s,rexes=[r'^\.(\S+)',r'\((\S+)\)',r'\@\s*(\S+)']):
   """
   Takes phenny input and returns the requested token
   matches, plus the rest of the stuff in the match
