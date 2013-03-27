@@ -10,11 +10,13 @@ def make_game(name,characters,pickle):
   G.save()
   return G
 
-def make_char(name,health,composure,refresh):
+def make_char(name,refresh,health,composure,hunger=None):
   char = dm.Character(name,NPC=False)
   char.stress={}
   char.stress['p'] = dm.StressTrack('Physical',boxes=health)
   char.stress['m'] = dm.StressTrack('Mental',boxes=composure)
+  if hunger:
+    char.stress['h'] = dm.StressTrack('Hunger',boxes=hunger,persist=True)
   char.fate.refresh=refresh
   char.fate.fate=refresh
   return char
