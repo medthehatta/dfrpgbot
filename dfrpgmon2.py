@@ -266,6 +266,7 @@ class Aspect(object):
                              ,"conssev":(["severe"],True)
                              ,"fragile":(["f"],False)
                              ,"style":(["#","#"],None)
+                             ,"sticky":(["s"],True)
                              }
     for f in flags: 
       flag = self.fix_flag(f) 
