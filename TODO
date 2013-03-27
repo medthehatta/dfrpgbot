@@ -1,5 +1,12 @@
 need import/export characters
-.scene (break up stress/aspect clear)
 separate production/development
+
+.scene (break up stress/aspect clear)
 add tags to existing aspects
+michael -> mike
+rayne fate fix
+copy stress properly (no social stress)
+turn off unicode errors (UnicodeError in phenny hook)
+strip quotes around aspect names
+
 
