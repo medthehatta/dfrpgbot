@@ -31,6 +31,7 @@ def c_add_persist_aspect(GAME,args,character,nick,flags):
 def c_del_aspect(GAME,args,character,nick,flags): 
   if character:
     return character.del_aspect(args)
+def c_purge_aspects(GAME,args,character,nick,flags): return character.purge_aspects()
 def c_tag(GAME,args,character,nick,flags): 
   if character:
     largs = args.lower()
@@ -57,7 +58,12 @@ def c_stats(GAME,args,character,nick,flags):
     character = GAME.lookup[args] or character
     return character.status()
 def c_all_stats(GAME,args,character,nick,flags): return "\n".join(sorted([str(c.status()) for c in GAME.characters]))
-def c_show_npcs(GAME,args,character,nick,flags): return "\n".join([str(c.status()) for c in GAME.characters if c.NPC])
+def c_show_npcs(GAME,args,character,nick,flags): 
+  statuses = "\n".join([str(c.status()) for c in GAME.characters if c.NPC])
+  if statuses == "":
+    return "No NPCs" 
+  else:
+    return statuses
 def c_show_pcs(GAME,args,character,nick,flags): return "\n".join([str(c.status()) for c in GAME.characters if not c.NPC])
 def c_add_fp(GAME,args,character,nick,flags): 
   if character:
@@ -81,9 +87,8 @@ def c_im(GAME,args,character,nick,flags):
 def c_copy(GAME,args,character,nick,flags):
   source = GAME.lookup[args]
   if source and character:
-    character.stress['p'].checked = source.stress['p'].checked[:]
-    character.stress['m'].checked = source.stress['m'].checked[:]
-    character.stress['s'].checked = source.stress['s'].checked[:]
+    for stress_track in character.stress:
+      character.stress[stress_track].checked = source.stress[stress_track].checked[:]
     character.fate.fate = source.fate.fate
     character.aspects = {}
     character.aspects.update(source.aspects)
@@ -95,6 +100,7 @@ def c_copy(GAME,args,character,nick,flags):
       return "Source character is invalid."
 def c_add_stress(GAME,args,character,nick,flags): return character.add_stress(flags[0],int(args))
 def c_del_stress(GAME,args,character,nick,flags): return character.del_stress(flags[0],int(args))
+def c_purge_stress(GAME,args,character,nick,flags): return character.purge_stress()
 def c_whosturn(GAME,args,character,nick,flags):
   if GAME.order.index!=None:
     return "{0}: {1}".format(GAME.lookup.nick(GAME.order.current()) or GAME.order.current(),GAME.order)
@@ -107,7 +113,7 @@ def c_next(GAME,args,character,nick,flags):
   if GAME.order.advance():
     return "{0}: {1}".format(GAME.lookup.nick(GAME.order.current()) or GAME.order.current(),GAME.order)
   else:
-    return "Turn order empty or inactive.  To activate, run .done_ordering"
+    return "Turn order empty or inactive.  To activate, run .done_ordering or .ordered"
 def c_back(GAME,args,character,nick,flags): 
   if GAME.order.advance(-1):
     return "{0}: {1}".format(GAME.lookup.nick(GAME.order.current()) or GAME.order.current(),GAME.order)
@@ -123,7 +129,11 @@ def c_del_order(GAME,args,character,nick,flags):
   else:
     return str(GAME.order)
 def c_reset_order(GAME,args,character,nick,flags):
-  return GAME.order.reset()
+  if GAME.order.ordering:
+    GAME.order.reset()
+    return "Order reset."
+  else:
+    return GAME.order.stop()
 def c_claim(GAME,args,character,nick,flags): 
   character = GAME.lookup[args] or character
   GAME.order.claim_turn(character)
@@ -141,7 +151,6 @@ COMMANDS = {\
 ,"npc+":c_add_npc
 ,"npc":c_add_npc
 ,"npc-":c_del_npc
-,"npcclean":c_npc_purge
 ,"npc#":c_npc_purge
 ,"npc!":c_npc_purge
 ,"roll":c_roll
@@ -149,6 +158,7 @@ COMMANDS = {\
 ,"aspect+":c_add_aspect
 ,"aspect":c_add_aspect
 ,"aspect-":c_del_aspect
+,"aspect#":c_purge_aspects
 ,"sticky+":c_add_persist_aspect
 ,"sticky":c_add_persist_aspect
 ,"sticky-":c_del_aspect
@@ -162,10 +172,12 @@ COMMANDS = {\
 ,"refresh":c_refresh
 ,"alias":c_alias
 ,"i'm":c_im
+,"im":c_im
 ,"copy":c_copy
 ,"stress+":c_add_stress
 ,"stress":c_add_stress
 ,"stress-":c_del_stress
+,"stress#":c_purge_stress
 ,"whosturn":c_whosturn
 ,"show_ordering":c_whosturn
 ,"show_order":c_whosturn
@@ -426,10 +438,24 @@ class Character(object):
 
   def conflict_cleanup(self):
     # stress
-    for s in self.stress.values():
-      if not s.persist: s.clear()
+    self.purge_stress()
 
     # aspects
+    self.purge_aspects()
+    return self
+
+  def add_aspect(self,name,persist=False,flags=None):
+    if "#" not in flags and "f" not in flags and "Fragile" not in flags and "fragile" not in flags and "style" not in flags: flags.append("#") # one free invoke
+    self.aspects[name.lower().strip()] = Aspect(name.lower().strip(),flags,persist)
+    return self
+
+  def del_aspect(self,name):
+    asp = self.aspects.get(name.lower())
+    if asp:
+      self.aspects.pop(name.lower()) 
+      return self
+
+  def purge_aspects(self):
     newaspects = {}
     for s in self.aspects:
       if self.aspects[s].persist:
@@ -439,18 +465,7 @@ class Character(object):
     self.aspects.clear()
     self.aspects.update(newaspects)
     return self
-
-  def add_aspect(self,name,persist=False,flags=None):
-    if "#" not in flags and "f" not in flags and "Fragile" not in flags and "fragile" not in flags and "style" not in flags: flags.append("#") # one free invoke
-    self.aspects[name.lower()] = Aspect(name,flags,persist)
-    return self
-
-  def del_aspect(self,name):
-    asp = self.aspects.get(name.lower())
-    if asp:
-      self.aspects.pop(asp.name.lower()) 
-      return self
-
+    
   def add_fate(self):
     if self.fate.increment(): return self
 
@@ -468,6 +483,11 @@ class Character(object):
     if stress:
       if stress.clear(amt):
         return self
+
+  def purge_stress(self):
+    for s in self.stress.values():
+      if not s.persist: s.clear()
+    return self
 
   
     
@@ -487,9 +507,10 @@ class Lookup(object):
 
   def __getitem__(self,alias):
     "Looks up a character from its alias"
-    a=alias.strip().lower()
-    if a in self._aliases:
-      return self._aliases[a]
+    if alias is not None:
+      a=alias.strip().lower()
+      if a in self._aliases:
+        return self._aliases[a]
 
   def __str__(self):
     return str(sorted([str(c) for c in self]))
@@ -667,7 +688,7 @@ def run_command(st,nick,GAME,COMMANDS,phenny=None):
   LOCALCOMMANDS.update(COMMANDS)
 
   # lookup command
-  cmd = LOCALCOMMANDS.get(cmd1)
+  cmd = LOCALCOMMANDS.get(cmd1.lower())
   if cmd:
     if not GAME and cmd!=load_game:
       say("Game not loaded.  Load with .load <gamefile>",phenny)
@@ -681,8 +702,10 @@ def run_command(st,nick,GAME,COMMANDS,phenny=None):
         say(str(ret),phenny)
 
 def phenny_hook(phenny,input):
-  #please let the closure work
-  run_command(str(input),input.nick,GAME,COMMANDS,phenny=phenny)
+  try:
+    run_command(str(input),input.nick,GAME,COMMANDS,phenny=phenny)
+  except UnicodeError:
+    pass
 phenny_hook.rule = r'.*'
 phenny_hook.threaded = False
   
