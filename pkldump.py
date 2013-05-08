@@ -10,7 +10,7 @@ if len(sys.argv)<2:
 
 pickle = sys.argv[1]
 
-def j(c): dm.run_command(c,"med",dm.GAME,dm.COMMANDS)
+def j(c): dm.run_command(c,"med","##dfrpg",dm.GAME,dm.COMMANDS)
 j(".load {0}".format(pickle))
 yaml.dump(dm.GAME,open("{0}-dump.yml".format(pickle),'w'),yaml.CDumper)
 

@@ -5,11 +5,11 @@ import pickle
 
 
 ## IRC COMMANDS ##
-def c_cleanup(GAME,args,character,nick,flags): 
+def c_cleanup(GAME,args,character,nick,flags,src): 
   GAME.cleanup()
   return "Stress, temporary aspects, and turn order cleared."
-def c_add_npc(GAME,args,character,nick,flags): return GAME.add(GAME.mkcharacter(args),nick)
-def c_del_npc(GAME,args,character,nick,flags): 
+def c_add_npc(GAME,args,character,nick,flags,src): return GAME.add(GAME.mkcharacter(args),nick)
+def c_del_npc(GAME,args,character,nick,flags,src): 
   # lookup by argument first, so you don't need @
   character = GAME.lookup[args] or character
   # remove if the character is an npc
@@ -17,22 +17,22 @@ def c_del_npc(GAME,args,character,nick,flags):
     GAME.characters.remove(character)
     GAME.lookup.pop(character)
     return "Removed {0}".format(character)
-def c_npc_purge(GAME,args,character,nick,flags): 
+def c_npc_purge(GAME,args,character,nick,flags,src): 
   GAME.npc_purge()
   return "NPCs purged."
-def c_roll(GAME,args,character,nick,flags): return GAME.rolling.roll(character,args)
-def c_amend(GAME,args,character,nick,flags): return GAME.rolling.amend(character,args)
-def c_add_aspect(GAME,args,character,nick,flags): 
+def c_roll(GAME,args,character,nick,flags,src): return GAME.rolling.roll(character,args)
+def c_amend(GAME,args,character,nick,flags,src): return GAME.rolling.amend(character,args)
+def c_add_aspect(GAME,args,character,nick,flags,src): 
   if character:
     return character.add_aspect(args,flags=flags)
-def c_add_persist_aspect(GAME,args,character,nick,flags):
+def c_add_persist_aspect(GAME,args,character,nick,flags,src):
   if character:
     return character.add_aspect(args,flags=flags,persist=True)
-def c_del_aspect(GAME,args,character,nick,flags): 
+def c_del_aspect(GAME,args,character,nick,flags,src): 
   if character:
     return character.del_aspect(args)
-def c_purge_aspects(GAME,args,character,nick,flags): return character.purge_aspects()
-def c_tag(GAME,args,character,nick,flags): 
+def c_purge_aspects(GAME,args,character,nick,flags,src): return character.purge_aspects()
+def c_tag(GAME,args,character,nick,flags,src): 
   if character:
     largs = args.lower()
     if character.aspects.get(largs): 
@@ -46,45 +46,45 @@ def c_tag(GAME,args,character,nick,flags):
       else:
         amended = GAME.rolling.amend(GAME.lookup[str(nick)+"#nick"],"+2")
         return amended or character
-def c_stats(GAME,args,character,nick,flags): 
+def c_stats(GAME,args,character,nick,flags,src): 
   flags = " ".join(flags) + args #search through the whole shebang
   if "all" in flags:
-    return c_all_stats(GAME,args,character,nick,flags)
+    return c_all_stats(GAME,args,character,nick,flags,src)
   elif "npc" in flags or "npcs" in flags:
-    return c_show_npcs(GAME,args,character,nick,flags)
+    return c_show_npcs(GAME,args,character,nick,flags,src)
   elif "pc" in flags or "pcs" in flags:
-    return c_show_pcs(GAME,args,character,nick,flags)
+    return c_show_pcs(GAME,args,character,nick,flags,src)
   else:
     character = GAME.lookup[args] or character
     return character.status()
-def c_all_stats(GAME,args,character,nick,flags): return "\n".join(sorted([str(c.status()) for c in GAME.characters]))
-def c_show_npcs(GAME,args,character,nick,flags): 
+def c_all_stats(GAME,args,character,nick,flags,src): return "\n".join(sorted([str(c.status()) for c in GAME.characters]))
+def c_show_npcs(GAME,args,character,nick,flags,src): 
   statuses = "\n".join([str(c.status()) for c in GAME.characters if c.NPC])
   if statuses == "":
     return "No NPCs" 
   else:
     return statuses
-def c_show_pcs(GAME,args,character,nick,flags): return "\n".join([str(c.status()) for c in GAME.characters if not c.NPC])
-def c_add_fp(GAME,args,character,nick,flags): 
+def c_show_pcs(GAME,args,character,nick,flags,src): return "\n".join([str(c.status()) for c in GAME.characters if not c.NPC])
+def c_add_fp(GAME,args,character,nick,flags,src): 
   if character:
     character.add_fate()
     return character
-def c_del_fp(GAME,args,character,nick,flags): 
+def c_del_fp(GAME,args,character,nick,flags,src): 
   if character:
     character.del_fate()
     return character
-def c_refresh(GAME,args,character,nick,flags): 
+def c_refresh(GAME,args,character,nick,flags,src): 
   for c in GAME.characters: c.fate.dorefresh()
   return "Ahhhhhhh.  Refreshing."
-def c_alias(GAME,args,character,nick,flags): 
+def c_alias(GAME,args,character,nick,flags,src): 
   GAME.lookup.alias(args,str(character))
   return "{0} is now also known as {1}".format(str(character),args)
-def c_im(GAME,args,character,nick,flags): 
+def c_im(GAME,args,character,nick,flags,src): 
   character = GAME.lookup[args] or character
   if character:
     GAME.lookup.alias_nick(str(character),nick)
     return "{0} is now {1}.".format(nick,str(character))
-def c_copy(GAME,args,character,nick,flags):
+def c_copy(GAME,args,character,nick,flags,src):
   source = GAME.lookup[args]
   if source and character:
     for stress_track in character.stress:
@@ -98,51 +98,57 @@ def c_copy(GAME,args,character,nick,flags):
       return "Target character is invalid."
     else:
       return "Source character is invalid."
-def c_add_stress(GAME,args,character,nick,flags): return character.add_stress(flags[0],int(args))
-def c_del_stress(GAME,args,character,nick,flags): return character.del_stress(flags[0],int(args))
-def c_purge_stress(GAME,args,character,nick,flags): return character.purge_stress()
-def c_whosturn(GAME,args,character,nick,flags):
-  if GAME.order.index!=None:
-    return "{0}: {1}".format(GAME.lookup.nick(GAME.order.current()) or GAME.order.current(),GAME.order)
+def c_add_stress(GAME,args,character,nick,flags,src): return character.add_stress(flags[0],int(args))
+def c_del_stress(GAME,args,character,nick,flags,src): return character.del_stress(flags[0],int(args))
+def c_purge_stress(GAME,args,character,nick,flags,src): return character.purge_stress()
+def c_whosturn(GAME,args,character,nick,flags,src):
+  if GAME.order[src].index!=None:
+    return "{0}: {1}".format(GAME.lookup.nick(GAME.order[src].current()) or GAME.order[src].current(),GAME.order[src])
   else:
-    return str(GAME.order)
-def c_ordered(GAME,args,character,nick,flags): 
-  GAME.order.establish()
-  return "{0}: {1}".format(GAME.lookup.nick(GAME.order.current()) or GAME.order.current(),GAME.order)
-def c_next(GAME,args,character,nick,flags): 
-  if GAME.order.advance():
-    return "{0}: {1}".format(GAME.lookup.nick(GAME.order.current()) or GAME.order.current(),GAME.order)
+    return str(GAME.order[src])
+def c_ordered(GAME,args,character,nick,flags,src): 
+  GAME.order[src].establish()
+  return "{0}: {1}".format(GAME.lookup.nick(GAME.order[src].current()) or GAME.order[src].current(),GAME.order[src])
+def c_next(GAME,args,character,nick,flags,src): 
+  if GAME.order[src].advance():
+    return "{0}: {1}".format(GAME.lookup.nick(GAME.order[src].current()) or GAME.order[src].current(),GAME.order[src])
   else:
     return "Turn order empty or inactive.  To activate, run .done_ordering or .ordered"
-def c_back(GAME,args,character,nick,flags): 
-  if GAME.order.advance(-1):
-    return "{0}: {1}".format(GAME.lookup.nick(GAME.order.current()) or GAME.order.current(),GAME.order)
+def c_back(GAME,args,character,nick,flags,src): 
+  if GAME.order[src].advance(-1):
+    return "{0}: {1}".format(GAME.lookup.nick(GAME.order[src].current()) or GAME.order[src].current(),GAME.order[src])
   else:
     return "Turn order empty or inactive.  To activate, run .done_ordering"
-def c_add_order(GAME,args,character,nick,flags): 
+def c_add_order(GAME,args,character,nick,flags,src): 
   # compute the net alertness like you would a die roll
   boons = sum(map(int,re.findall(r'(?:\+|\-)[0-9]+',args)))
-  return GAME.order.insert((boons,character))
-def c_del_order(GAME,args,character,nick,flags): 
-  if GAME.order.drop_current():
-    return "{0}: {1}".format(GAME.lookup.nick(GAME.order.current()) or GAME.order.current(),GAME.order)
+  return GAME.order[src].insert((boons,character))
+def c_del_order(GAME,args,character,nick,flags,src): 
+  if GAME.order[src].drop_current():
+    return "{0}: {1}".format(GAME.lookup.nick(GAME.order[src].current()) or GAME.order[src].current(),GAME.order[src])
   else:
-    return str(GAME.order)
-def c_reset_order(GAME,args,character,nick,flags):
-  if GAME.order.ordering:
-    GAME.order.reset()
+    return str(GAME.order[src])
+def c_reset_order(GAME,args,character,nick,flags,src):
+  if GAME.order[src].ordering:
+    GAME.order[src].reset()
     return "Order reset."
   else:
-    return GAME.order.stop()
-def c_claim(GAME,args,character,nick,flags): 
+    return GAME.order[src].stop()
+def c_claim(GAME,args,character,nick,flags,src): 
   character = GAME.lookup[args] or character
-  GAME.order.claim_turn(character)
-  if GAME.order.index!=None:
-    return "{0}: {1}".format(GAME.lookup.nick(GAME.order.current()) or GAME.order.current(),GAME.order)
+  GAME.order[src].claim_turn(character)
+  if GAME.order[src].index!=None:
+    return "{0}: {1}".format(GAME.lookup.nick(GAME.order[src].current()) or GAME.order[src].current(),GAME.order[src])
   else:
-    return str(GAME.order)
-def c_stop_order(GAME,args,character,nick,flags):
-  return GAME.order.stop()
+    return str(GAME.order[src])
+def c_stop_order(GAME,args,character,nick,flags,src):
+  return GAME.order[src].stop()
+def c_new_order(GAME,args,character,nick,flags,src):
+  GAME.order[src] = TurnOrdering()
+  return GAME.order[src]
+def c_del_order(GAME,args,character,nick,flags,src):
+  GAME.order.pop(src)
+  return "Order removed."
 
 COMMANDS = {\
 "clean":c_cleanup
@@ -603,7 +609,7 @@ class PlayerDice(object):
 
 ## GLOBALS ##
 class FATEGAME(object):
-  def __init__(self,characters=[],rolling=PlayerDice(),order=TurnOrdering(),config={}):
+  def __init__(self,characters=[],rolling=PlayerDice(),order={},config={}):
     self.lookup = Lookup(characters)
     self.characters = characters
     self.config = config
@@ -667,7 +673,7 @@ def say(lines,phenny=None):
     else:
       print(l)
 
-def run_command(st,nick,GAME,COMMANDS,phenny=None):
+def run_command(st,nick,src,GAME,COMMANDS,phenny=None):
   (commands,flags,character1,args) = parse(st)
   try:
     cmd1 = commands[0]
@@ -694,7 +700,7 @@ def run_command(st,nick,GAME,COMMANDS,phenny=None):
     if not GAME and cmd!=load_game:
       say("Game not loaded.  Load with .load <gamefile>",phenny)
       return 
-    ret = cmd(GAME,args,character,nick,flags)
+    ret = cmd(GAME,args,character,nick,flags,src)
     if GAME: GAME.save()
     if ret!=None:
       if type(ret)==Character:
@@ -704,13 +710,13 @@ def run_command(st,nick,GAME,COMMANDS,phenny=None):
 
 def phenny_hook(phenny,input):
   try:
-    run_command(str(input),input.nick,GAME,COMMANDS,phenny=phenny)
+    run_command(str(input),input.nick,input.sender,GAME,COMMANDS,phenny=phenny)
   except UnicodeError:
     pass
 phenny_hook.rule = r'.*'
 phenny_hook.threaded = False
   
-def load_game(GAME_,args,character,nick,flags):
+def load_game(GAME_,args,character,nick,flags,src):
   global GAME
   GAME = pickle.load(open(args,'rb'))
   if type(GAME)==FATEGAME:
@@ -718,7 +724,7 @@ def load_game(GAME_,args,character,nick,flags):
     num_players = len([c for c in GAME.characters if not c.NPC])
     num_npcs    = len(GAME.characters) - num_players
     short_status = "Loaded: {0}\n{1} PCs, {2} NPCs.  {3} players in turn order.".format(\
-      GAME.config['title'], num_players, num_npcs, len(GAME.order.ordering))
+      GAME.config['title'], num_players, num_npcs, len(GAME.order[src].ordering))
     return short_status
 
 GAME = None
