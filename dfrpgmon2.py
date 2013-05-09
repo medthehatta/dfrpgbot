@@ -199,6 +199,8 @@ COMMANDS = {\
 ,"reset_order":c_reset_order
 ,"claim":c_claim
 ,"claim_turn":c_claim
+,"new_order":c_new_order
+,"del_order":c_del_order
 }
 
 
@@ -723,8 +725,8 @@ def load_game(GAME_,args,character,nick,flags,src):
     GAME.load()
     num_players = len([c for c in GAME.characters if not c.NPC])
     num_npcs    = len(GAME.characters) - num_players
-    short_status = "Loaded: {0}\n{1} PCs, {2} NPCs.  {3} players in turn order.".format(\
-      GAME.config['title'], num_players, num_npcs, len(GAME.order[src].ordering))
+    short_status = "Loaded: {0}\n{1} PCs, {2} NPCs.".format(\
+      GAME.config['title'], num_players, num_npcs)
     return short_status
 
 GAME = None
