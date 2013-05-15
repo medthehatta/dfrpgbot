@@ -146,7 +146,7 @@ def c_stop_order(GAME,args,character,nick,flags,src):
 def c_new_order(GAME,args,character,nick,flags,src):
   GAME.order[src] = TurnOrdering()
   return GAME.order[src]
-def c_del_order(GAME,args,character,nick,flags,src):
+def c_del_whole_order(GAME,args,character,nick,flags,src):
   GAME.order.pop(src)
   return "Order removed."
 
@@ -200,7 +200,7 @@ COMMANDS = {\
 ,"claim":c_claim
 ,"claim_turn":c_claim
 ,"new_order":c_new_order
-,"del_order":c_del_order
+,"del_order":c_del_whole_order
 }
 
 
