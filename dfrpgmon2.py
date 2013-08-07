@@ -1,9 +1,12 @@
 from functools import reduce
-import pdb
 import random
 import re
 import pickle
 import yaml
+import os, os.path
+
+# All the files are in here
+PATH = '/var/phenny/dfrpgbot'
 
 
 ## IRC COMMANDS ##
@@ -261,7 +264,7 @@ COMMANDS = {\
 class StressTrack(object):
   """
   CLASS STRESS_TRACK
-  This object keeps track of stress: mental, physical, social, hunger.
+  This object keeps track of stress: mental, physical, hunger.
   """
   def __init__(self,name="Stress",boxes=2,persist=False,shortname=None):
     self.name = name       #what to call this stress track
@@ -475,7 +478,7 @@ class Character(object):
     self.fate = Fate(3)
     self.stress = \
       dict([(n[0].lower(),StressTrack(n)) 
-        for n in ["physical","mental","social"]])
+        for n in ["physical","mental"]])
     self.aspects = {}
 
   def __str__(self):
@@ -484,7 +487,7 @@ class Character(object):
   def status(self):
     dlim=" | "
     def stress_order(s): 
-      return (list("PMS")+[s.shortname]).index(s.shortname)
+      return (list("PM")+[s.shortname]).index(s.shortname)
     def aspectpp(asp): return "[{0}]".format(asp)
 
     if self.NPC:
@@ -702,8 +705,8 @@ class FATEGAME(object):
   def save(self,redir=None):
     order_path = self.config['order'].get('pickle') or 'auto_order.pkl'
     char_path = self.config['characters'].get('pickle') or 'auto_char.pkl'
-    pickle.dump(self.order,open(order_path,'wb'))
-    pickle.dump(self.lookup,open(char_path,'wb'))
+    pickle.dump(self.order,open(os.path.join(PATH,order_path),'wb'))
+    pickle.dump(self.lookup,open(os.path.join(PATH,char_path),'wb'))
     return self
 
   def cleanup(self):
@@ -784,7 +787,7 @@ def reload_snark(snarkfile):
     snark[i]=[]
 
   # Read in the snark
-  D = yaml.load_all(open(snarkfile))
+  D = yaml.load_all(open(os.path.join(PATH,snarkfile)))
   for k in D:
     for r in k['rolls']:
       snark[r]+=k['items']
@@ -794,7 +797,6 @@ def reload_snark(snarkfile):
 
 
 def make_char(name,data_dict,char=None):
-  #pdb.set_trace()
   if char is None:
     char = Character(name,NPC=False)
   for (stress_name,stress) in data_dict['stress'].items():
@@ -808,25 +810,27 @@ def make_char(name,data_dict,char=None):
 
 
 
-
 def load_game(GAME_,args,character,nick,flags,src):
   global GAME
 
+  if args is None:
+    return "No game file specified."
+
   try:
-    config = yaml.load(open(args))
-  except Exception:
-    return "Unable to load game data from {}".format(args)
+    config = yaml.load(open(os.path.join(PATH,args)))
+  except IOError:
+    return "Game file {0} invalid, or does not exist.".format(args)
 
   # Verify all the sections are present
   for key in ['characters','dice','order','aspects']:
     if config.get(key) is None:
-      return "Configuration file {} missing {} section".format(args, key)
+      return "Configuration file {0} missing {1} section".format(args, key)
 
   # Load in the saved character data, including npcs (if exists)
   lookup_file = config['characters'].get('pickle')
   if lookup_file is not None:
     try:
-      lookup_load = pickle.load(open(lookup_file,'rb'))
+      lookup_load = pickle.load(open(os.path.join(PATH,lookup_file),'rb'))
     except IOError:
       lookup_load = Lookup()
 
@@ -834,7 +838,7 @@ def load_game(GAME_,args,character,nick,flags,src):
   num_new_chars = 0
   characters_file = config['characters'].get('load')
   if characters_file is not None:
-    char_load = yaml.load(open(characters_file))
+    char_load = yaml.load(open(os.path.join(PATH,characters_file)))
     for (cname,c) in char_load.items():
       basechar = lookup_load[cname] or None
 
@@ -843,14 +847,19 @@ def load_game(GAME_,args,character,nick,flags,src):
         make_char(cname,c,basechar)
       else:
         # make new character
-        lookup_load.add(make_char(cname,c,basechar)) 
         num_new_chars += 1
+        lookup_load.add(make_char(cname,c,basechar)) 
+
+      # add aliases, if exist
+      if c.get('aliases'):
+        for a in c.get('aliases'):
+          lookup_load.alias(cname,a)
     
   # Load in the last turn order
   order_file = config['order'].get('pickle')
   if order_file is not None:
     try:
-      order_load = pickle.load(open(order_file,'rb'))
+      order_load = pickle.load(open(os.path.join(PATH,order_file),'rb'))
     except IOError:
       order_load = None
   else: 
@@ -866,7 +875,7 @@ def load_game(GAME_,args,character,nick,flags,src):
   # Load in the aspect flag transformers
   aspect_xform_file = config['aspects'].get('transformers')
   if aspect_xform_file is not None:
-    aspect_xform = yaml.load(open(aspect_xform_file))
+    aspect_xform = yaml.load(open(os.path.join(PATH,aspect_xform_file)))
     global flag_transformers
     flag_transformers = aspect_xform
 

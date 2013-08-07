@@ -1,0 +1,78 @@
+nick:
+    stress:
+        physical: 4
+        mental: 4
+    refresh: 1
+
+mallory:
+    stress:
+        physical: 8
+        mental: 3
+        hunger: 4
+    refresh: 1
+    aliases:
+        - chickenlittle
+
+alan:
+    stress:
+        physical: 4
+        mental: 3
+    refresh: 1
+
+mike:
+    stress:
+        physical: 3
+        mental: 4
+    refresh: 7
+
+reagle:
+    stress:
+        physical: 4
+        mental: 3
+    refresh: 1
+    aliases: 
+        - eagle
+
+rayne:
+    stress:
+        physical: 3
+        mental: 4
+    refresh: 1
+
+umbra:
+    stress:
+        physical: 7
+        mental: 3
+    refresh: 3
+    aliases:
+        - sevda
+
+vermis:
+    stress:
+        physical: 4
+        mental: 4
+        hunger: 4
+    refresh: 2
+
+bingo:
+    stress:
+        physical: 3
+        mental: 3
+    refresh: 11
+    aliases:
+        - johnny
+        - jon
+
+christine:
+    stress:
+        physical: 3
+        mental: 3
+    refresh: 7
+
+jackson:
+    stress:
+        physical: 4
+        mental: 4
+    refresh: 6
+
+

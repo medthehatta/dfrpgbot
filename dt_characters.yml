@@ -2,7 +2,6 @@ skyler:
     stress:
         physical: 4
         mental: 4
-        social: 2
     refresh: 2
     aliases:
         - sky
@@ -11,7 +10,6 @@ songbird:
     stress:
         physical: 2
         mental: 2
-        social: 2
     refresh: 1
     aliases:
         - bird
@@ -20,21 +18,18 @@ tortoise:
     stress:
         physical: 4
         mental: 2
-        social: 2
     refresh: 1
 
 sylvia:
     stress:
         physical: 3
         mental: 2
-        social: 2
     refresh: 2
 
 edmund:
     stress:
         physical: 4
         mental: 3
-        social: 2
     refresh: 1
     aliases: 
         - ed
@@ -43,7 +38,6 @@ billy:
     stress:
         physical: 5
         mental: 4
-        social: 2
     refresh: 1
     aliases:
         - bill
@@ -53,7 +47,6 @@ azmodius:
     stress:
         physical: 2
         mental: 2
-        social: 2
     refresh: 1
     aliases:
         - az
@@ -62,21 +55,18 @@ lacey:
     stress:
         physical: 2
         mental: 2
-        social: 2
     refresh: 1
 
 fiver:
     stress:
         physical: 3
         mental: 2
-        social: 2
     refresh: 3
 
 ezekiel:
     stress:
         physical: 3
         mental: 2
-        social: 2
     refresh: 1
     aliases:
         - zeke
@@ -85,21 +75,18 @@ jason:
     stress:
         physical: 2
         mental: 3
-        social: 2
     refresh: 2
 
 isabel:
     stress:
         physical: 2
         mental: 2
-        social: 2
     refresh: 3
 
 bobby:
     stress:
         physical: 2
         mental: 2
-        social: 2
     refresh: 1
     aliases:
         - bob
@@ -108,21 +95,18 @@ chimp:
     stress:
         physical: 3
         mental: 2
-        social: 2
     refresh: 1
 
 karl:
     stress:
         physical: 3
         mental: 2
-        social: 2
     refresh: 3
 
 calvin:
     stress:
         physical: 2
         mental: 2
-        social: 2
     refresh: 4
     aliases:
         - cal
@@ -131,7 +115,6 @@ fluffums:
     stress:
         physical: 6
         mental: 2
-        social: 2
     refresh: 1
     aliases:
         - dog

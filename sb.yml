@@ -1,0 +1,17 @@
+title: 'Shadows of Blood'
+
+characters: 
+    load: sb_characters.yml
+    pickle: sb_characters.pkl
+
+dice:
+    snark: snark.yml
+
+order:
+    pickle: sb_order.pkl
+
+aspects:
+    transformers: flag_transformers.yml
+
+
+
