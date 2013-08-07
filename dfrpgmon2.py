@@ -76,7 +76,10 @@ def c_stats(GAME,args,character,nick,flags,src):
     return c_show_pcs(GAME,args,character,nick,flags,src)
   else:
     character = GAME.lookup[args] or character
-    return character.status()
+    if character is None:
+      return "You are not playing a character yet.  Do .i'm <character> first."
+    else:
+      return character.status()
 
 def c_all_stats(GAME,args,character,nick,flags,src): return "\n".join(sorted([str(c.status()) for c in GAME.characters]))
 
