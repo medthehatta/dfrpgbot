@@ -124,55 +124,80 @@ def c_copy(GAME,args,character,nick,flags,src):
       return "Target character is invalid."
     else:
       return "Source character is invalid."
+
 def c_add_stress(GAME,args,character,nick,flags,src): return character.add_stress(flags[0],int(args))
+
 def c_del_stress(GAME,args,character,nick,flags,src): return character.del_stress(flags[0],int(args))
+
 def c_purge_stress(GAME,args,character,nick,flags,src): return character.purge_stress()
+
 def c_whosturn(GAME,args,character,nick,flags,src):
+  if GAME.order.keys()==[]: GAME.order[src]=TurnOrdering()
   if GAME.order[src].index!=None:
     return "{0}: {1}".format(GAME.lookup.nick(GAME.order[src].current()) or GAME.order[src].current(),GAME.order[src])
   else:
     return str(GAME.order[src])
+
 def c_ordered(GAME,args,character,nick,flags,src): 
+  if GAME.order.keys()==[]: GAME.order[src]=TurnOrdering()
   GAME.order[src].establish()
   return "{0}: {1}".format(GAME.lookup.nick(GAME.order[src].current()) or GAME.order[src].current(),GAME.order[src])
+
 def c_next(GAME,args,character,nick,flags,src): 
+  if GAME.order.keys()==[]: GAME.order[src]=TurnOrdering()
   if GAME.order[src].advance():
     return "{0}: {1}".format(GAME.lookup.nick(GAME.order[src].current()) or GAME.order[src].current(),GAME.order[src])
   else:
     return "Turn order empty or inactive.  To activate, run .done_ordering or .ordered"
+
 def c_back(GAME,args,character,nick,flags,src): 
+  if GAME.order.keys()==[]: GAME.order[src]=TurnOrdering()
   if GAME.order[src].advance(-1):
     return "{0}: {1}".format(GAME.lookup.nick(GAME.order[src].current()) or GAME.order[src].current(),GAME.order[src])
   else:
     return "Turn order empty or inactive.  To activate, run .done_ordering"
+
 def c_add_order(GAME,args,character,nick,flags,src): 
+  if GAME.order.keys()==[]: GAME.order[src]=TurnOrdering()
   # compute the net alertness like you would a die roll
   boons = sum(map(int,re.findall(r'(?:\+|\-)[0-9]+',args)))
   return GAME.order[src].insert((boons,character))
+
 def c_del_order(GAME,args,character,nick,flags,src): 
+  if GAME.order.keys()==[]: GAME.order[src]=TurnOrdering()
   if GAME.order[src].drop_current():
     return "{0}: {1}".format(GAME.lookup.nick(GAME.order[src].current()) or GAME.order[src].current(),GAME.order[src])
   else:
     return str(GAME.order[src])
+
 def c_reset_order(GAME,args,character,nick,flags,src):
+  if GAME.order.keys()==[]: GAME.order[src]=TurnOrdering()
   if GAME.order[src].ordering:
     GAME.order[src].reset()
     return "Order reset."
   else:
     return GAME.order[src].stop()
+
 def c_claim(GAME,args,character,nick,flags,src): 
+  if GAME.order.keys()==[]: GAME.order[src]=TurnOrdering()
   character = GAME.lookup[args] or character
   GAME.order[src].claim_turn(character)
   if GAME.order[src].index!=None:
     return "{0}: {1}".format(GAME.lookup.nick(GAME.order[src].current()) or GAME.order[src].current(),GAME.order[src])
   else:
     return str(GAME.order[src])
+
 def c_stop_order(GAME,args,character,nick,flags,src):
+  if GAME.order.keys()==[]: GAME.order[src]=TurnOrdering()
   return GAME.order[src].stop()
+
 def c_new_order(GAME,args,character,nick,flags,src):
+  if GAME.order.keys()==[]: GAME.order[src]=TurnOrdering()
   GAME.order[src] = TurnOrdering()
   return GAME.order[src]
+
 def c_del_whole_order(GAME,args,character,nick,flags,src):
+  if GAME.order.keys()==[]: GAME.order[src]=TurnOrdering()
   GAME.order.pop(src)
   return "Order removed."
 
@@ -282,6 +307,18 @@ class StressTrack(object):
         track.append(unchk)
     return "({0}) ".format(self.shortname) + delim.join(track)
 
+
+
+
+flag_transformers = {"consmild":(["mild"],True)
+                         ,"consmod":(["moderate"],True)
+                         ,"consmoderate":(["moderate"],True)
+                         ,"conssevere":(["severe"],True)
+                         ,"conssev":(["severe"],True)
+                         ,"fragile":(["f"],False)
+                         ,"style":(["#","#"],None)
+                         ,"sticky":(["s"],True)
+                         }
 class Aspect(object):
   """
   CLASS ASPECT
@@ -293,15 +330,6 @@ class Aspect(object):
     self.name = str(name)
     self.persist = persist
     self.flags = []
-    self.flag_transformers = {"consmild":(["mild"],True)
-                             ,"consmod":(["moderate"],True)
-                             ,"consmoderate":(["moderate"],True)
-                             ,"conssevere":(["severe"],True)
-                             ,"conssev":(["severe"],True)
-                             ,"fragile":(["f"],False)
-                             ,"style":(["#","#"],None)
-                             ,"sticky":(["s"],True)
-                             }
     for f in flags: 
       flag = self.fix_flag(f) 
       self.flags.extend(flag[0])
@@ -317,7 +345,7 @@ class Aspect(object):
       return self
 
   def fix_flag(self,flag):
-    xformer = self.flag_transformers.get(flag) or self.flag_transformers.get(flag.lower()) or ([flag],None)
+    xformer = flag_transformers.get(flag) or flag_transformers.get(flag.lower()) or ([flag],None)
     return (xformer[0],xformer[1])
       
 
@@ -330,7 +358,7 @@ class Fate(object):
     self.refresh = refresh
     self.fate = fate or self.refresh
 
-  def dorefresh(self):
+  def do_refresh(self):
     if self.fate<self.refresh: self.fate=self.refresh
     return self
 
@@ -447,7 +475,7 @@ class Character(object):
     self.fate = Fate(3)
     self.stress = \
       dict([(n[0].lower(),StressTrack(n)) 
-        for n in ["Physical","Mental","Social"]])
+        for n in ["physical","mental","social"]])
     self.aspects = {}
 
   def __str__(self):
@@ -491,14 +519,9 @@ class Character(object):
       return self
 
   def purge_aspects(self):
-    newaspects = {}
     for s in self.aspects:
-      if self.aspects[s].persist:
-        if "#" not in self.aspects[s].flags and "f" not in self.aspects[s].flags:
-          self.aspects[s].flags.append("#") # restore free invoke
-        newaspects.update([(s,self.aspects[s])])
-    self.aspects.clear()
-    self.aspects.update(newaspects)
+      if not self.aspects[s].persist:
+        self.aspects.pop(s)
     return self
     
   def add_fate(self):
@@ -642,12 +665,21 @@ class PlayerDice(object):
 
 ## GLOBALS ##
 class FATEGAME(object):
-  def __init__(self,characters=[],rolling=PlayerDice(),order={},config={}):
-    self.lookup = Lookup(characters)
-    self.characters = characters
-    self.config = config
+  def __init__(self,characters=[],lookup=None,rolling=PlayerDice(),order=None,config={}):
+    if lookup is None:
+      self.characters = characters
+      self.lookup = Lookup(characters)
+    elif characters==[]:
+      self.lookup = lookup 
+      self.characters = lookup.characters
+
     self.rolling = rolling
-    self.order = order
+    self.config = config
+
+    if order is None:
+      self.order = {}
+    else:
+      self.order = order
 
   def mkcharacter(self,name):
     """Hack to let the dfrpgcmds access the Character class"""
@@ -667,20 +699,12 @@ class FATEGAME(object):
       self.lookup.pop(c)
     return self
 
-  def load(self):
-    if self.load_revisions(self.config['revisionfile']):
-      return self
-
   def save(self,redir=None):
-    picklepath = redir or self.config.get('pickle')
-    if picklepath:
-      picklefile = open(picklepath,'wb')
-      if picklefile:
-        pickle.dump(self,picklefile)
-        return self
-
-  def load_revisions(self,revpath): 
-    pass
+    order_path = self.config['order'].get('pickle') or 'auto_order.pkl'
+    char_path = self.config['characters'].get('pickle') or 'auto_char.pkl'
+    pickle.dump(self.order,open(order_path,'wb'))
+    pickle.dump(self.lookup,open(char_path,'wb'))
+    return self
 
   def cleanup(self):
     self.rolling = PlayerDice()
@@ -749,15 +773,127 @@ def phenny_hook(phenny,input):
 phenny_hook.rule = r'.*'
 phenny_hook.threaded = False
   
+
+
+
+
+def reload_snark(snarkfile):
+  # Initialize the dict
+  snark = {}
+  for i in range(-4,4+1):
+    snark[i]=[]
+
+  # Read in the snark
+  D = yaml.load_all(open(snarkfile))
+  for k in D:
+    for r in k['rolls']:
+      snark[r]+=k['items']
+  return snark
+
+
+
+
+def make_char(name,data_dict,char=None):
+  #pdb.set_trace()
+  if char is None:
+    char = Character(name,NPC=False)
+  for (stress_name,stress) in data_dict['stress'].items():
+    name = stress_name.lower()
+    if name=='hunger':
+      char.stress[name[0]] = StressTrack(stress_name,boxes=stress,persist=True)
+    else:
+      char.stress[name[0]] = StressTrack(stress_name,boxes=stress)
+  char.fate.refresh=data_dict['refresh']
+  return char
+
+
+
+
 def load_game(GAME_,args,character,nick,flags,src):
   global GAME
-  GAME = pickle.load(open(args,'rb'))
-  if type(GAME)==FATEGAME:
-    GAME.load()
-    num_players = len([c for c in GAME.characters if not c.NPC])
-    num_npcs    = len(GAME.characters) - num_players
-    short_status = "Loaded: {0}\n{1} PCs, {2} NPCs.".format(\
-      GAME.config['title'], num_players, num_npcs)
-    return short_status
+
+  try:
+    config = yaml.load(open(args))
+  except Exception:
+    return "Unable to load game data from {}".format(args)
+
+  # Verify all the sections are present
+  for key in ['characters','dice','order','aspects']:
+    if config.get(key) is None:
+      return "Configuration file {} missing {} section".format(args, key)
+
+  # Load in the saved character data, including npcs (if exists)
+  lookup_file = config['characters'].get('pickle')
+  if lookup_file is not None:
+    try:
+      lookup_load = pickle.load(open(lookup_file,'rb'))
+    except IOError:
+      lookup_load = Lookup()
+
+  # Update or create the base properties of the characters (refresh,stress)
+  num_new_chars = 0
+  characters_file = config['characters'].get('load')
+  if characters_file is not None:
+    char_load = yaml.load(open(characters_file))
+    for (cname,c) in char_load.items():
+      basechar = lookup_load[cname] or None
+
+      if basechar is not None:
+        # mutate character data
+        make_char(cname,c,basechar)
+      else:
+        # make new character
+        lookup_load.add(make_char(cname,c,basechar)) 
+        num_new_chars += 1
+    
+  # Load in the last turn order
+  order_file = config['order'].get('pickle')
+  if order_file is not None:
+    try:
+      order_load = pickle.load(open(order_file,'rb'))
+    except IOError:
+      order_load = None
+  else: 
+    order_load = None
+
+  # Load in the dice snark
+  snark_file = config['dice'].get('snark')
+  if snark_file is not None:
+    snark = reload_snark(snark_file)
+  else:
+    snark = {1:[''],2:[''],3:[''],4:[''],-1:[''],-2:[''],-3:[''],-4:['']}
+
+  # Load in the aspect flag transformers
+  aspect_xform_file = config['aspects'].get('transformers')
+  if aspect_xform_file is not None:
+    aspect_xform = yaml.load(open(aspect_xform_file))
+    global flag_transformers
+    flag_transformers = aspect_xform
+
+  GAME = FATEGAME(lookup=lookup_load,order=order_load,rolling=PlayerDice(snark),config=config)
+  
+  num_chars = len(lookup_load.characters)
+  num_npc = num_chars - len([l for l in lookup_load if not l.NPC])
+  game_title = config['title']
+
+  GAME.save()
+
+  if num_new_chars>0:
+    status_new = " ({0} new)".format(num_new_chars)
+  else:
+    status_new = ''
+
+  if order_load is not None:
+    order_info = ["{0} ({1} chars)".format(c[0],len(c[1].ordering)) for c in order_load.items() if c and len(c[1].ordering)>0]
+    if order_info:
+      status_order = "\nActive orders: "+"  ".join(order_info)
+    else:
+      status_order = ''
+  else:
+    status_order = ''
+
+  status_head = "Loaded: {0}\n{1} PCs, {2} NPCs".format(game_title,num_chars-num_npc,num_npc)
+
+  return status_head+status_new+"."+status_order
 
 GAME = None
