@@ -1,14 +1,19 @@
 from functools import reduce
+import pdb
 import random
 import re
 import pickle
+import yaml
 
 
 ## IRC COMMANDS ##
+
 def c_cleanup(GAME,args,character,nick,flags,src): 
   GAME.cleanup()
   return "Stress, temporary aspects, and turn order cleared."
+
 def c_add_npc(GAME,args,character,nick,flags,src): return GAME.add(GAME.mkcharacter(args),nick)
+
 def c_del_npc(GAME,args,character,nick,flags,src): 
   # lookup by argument first, so you don't need @
   character = GAME.lookup[args] or character
@@ -17,21 +22,30 @@ def c_del_npc(GAME,args,character,nick,flags,src):
     GAME.characters.remove(character)
     GAME.lookup.pop(character)
     return "Removed {0}".format(character)
+
 def c_npc_purge(GAME,args,character,nick,flags,src): 
   GAME.npc_purge()
   return "NPCs purged."
-def c_roll(GAME,args,character,nick,flags,src): return GAME.rolling.roll(character,args)
+
+def c_roll(GAME,args,character,nick,flags,src): 
+  return GAME.rolling.roll(character,args)
+
 def c_amend(GAME,args,character,nick,flags,src): return GAME.rolling.amend(character,args)
+
 def c_add_aspect(GAME,args,character,nick,flags,src): 
   if character:
     return character.add_aspect(args,flags=flags)
+
 def c_add_persist_aspect(GAME,args,character,nick,flags,src):
   if character:
     return character.add_aspect(args,flags=flags,persist=True)
+
 def c_del_aspect(GAME,args,character,nick,flags,src): 
   if character:
     return character.del_aspect(args)
+
 def c_purge_aspects(GAME,args,character,nick,flags,src): return character.purge_aspects()
+
 def c_tag(GAME,args,character,nick,flags,src): 
   if character:
     largs = args.lower()
@@ -46,8 +60,11 @@ def c_tag(GAME,args,character,nick,flags,src):
       else:
         amended = GAME.rolling.amend(GAME.lookup[str(nick)+"#nick"],"+2")
         return amended or character
+    else:
+        return "{0} has no aspect {1}!".format(character,largs)
+
 def c_stats(GAME,args,character,nick,flags,src): 
-  flags = " ".join(flags) + args #search through the whole shebang
+  flags = " ".join(flags)
   if "all" in flags:
     return c_all_stats(GAME,args,character,nick,flags,src)
   elif "npc" in flags or "npcs" in flags:
@@ -57,33 +74,42 @@ def c_stats(GAME,args,character,nick,flags,src):
   else:
     character = GAME.lookup[args] or character
     return character.status()
+
 def c_all_stats(GAME,args,character,nick,flags,src): return "\n".join(sorted([str(c.status()) for c in GAME.characters]))
+
 def c_show_npcs(GAME,args,character,nick,flags,src): 
   statuses = "\n".join([str(c.status()) for c in GAME.characters if c.NPC])
   if statuses == "":
     return "No NPCs" 
   else:
     return statuses
+
 def c_show_pcs(GAME,args,character,nick,flags,src): return "\n".join([str(c.status()) for c in GAME.characters if not c.NPC])
+
 def c_add_fp(GAME,args,character,nick,flags,src): 
   if character:
     character.add_fate()
     return character
+
 def c_del_fp(GAME,args,character,nick,flags,src): 
   if character:
     character.del_fate()
     return character
+
 def c_refresh(GAME,args,character,nick,flags,src): 
-  for c in GAME.characters: c.fate.dorefresh()
+  for c in GAME.characters: c.fate.do_refresh()
   return "Ahhhhhhh.  Refreshing."
+
 def c_alias(GAME,args,character,nick,flags,src): 
   GAME.lookup.alias(args,str(character))
   return "{0} is now also known as {1}".format(str(character),args)
+
 def c_im(GAME,args,character,nick,flags,src): 
   character = GAME.lookup[args] or character
   if character:
     GAME.lookup.alias_nick(str(character),nick)
     return "{0} is now {1}.".format(nick,str(character))
+
 def c_copy(GAME,args,character,nick,flags,src):
   source = GAME.lookup[args]
   if source and character:
@@ -577,12 +603,14 @@ class Lookup(object):
       return character
 
 class PlayerDice(object):
-  def __init__(self):
+  def __init__(self,snark=None):
     self.rolls = {}
+    self.snark = snark or {}
 
   def roll(self,character,spec):
     base  = list(map(random.choice,[[-1,0,1]]*4))
     boons = list(map(int,re.findall(r'(?:\+|\-)[0-9]+',spec)))
+    egg = list(re.findall(r'\+\S+',spec))
     self.rolls[character] = sum(base) + sum(boons)
     
     dbase = " ".join([{1:"+",0:"0",-1:"-"}[b] for b in base])
@@ -590,6 +618,9 @@ class PlayerDice(object):
 
     if dboons:
       return "{0} rolled: [{1}] {{{2}}} ({3}) = {{{4}}}".format(character,dbase,sum(base),dboons,self.rolls[character])
+    elif self.snark and egg:
+      eggs = self.snark[self.rolls[character]]
+      return "{0} rolled: [{1}] {{{2}}} = {{{3}}} ({4})".format(character,dbase,sum(base),self.rolls[character],random.choice(eggs))
     else:
       return "{0} rolled: [{1}] {{{2}}} = {{{3}}}".format(character,dbase,sum(base),self.rolls[character])
 
