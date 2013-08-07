@@ -1,0 +1,10 @@
+consmild: [['mild'],True]
+consmod: [['moderate'],True]
+consmoderate: [['moderate'],True]
+conssev: [['severe'],True]
+conssevere: [['severe'],True]
+consext: [['extreme'],True]
+style: [['#','#'],null]
+fragile: [['f'],False]
+sticky: [['s'],True]
+

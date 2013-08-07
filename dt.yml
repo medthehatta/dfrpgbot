@@ -1,0 +1,17 @@
+title: 'The D Team'
+
+characters: 
+    load: dt_characters.yml
+    pickle: dt_characters.pkl
+
+dice:
+    snark: snark.yml
+
+order:
+    pickle: dt_order.pkl
+
+aspects:
+    transformers: flag_transformers.yml
+
+
+
