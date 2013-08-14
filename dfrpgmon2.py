@@ -799,10 +799,16 @@ def reload_snark(snarkfile):
 
 
 
+# TODO: manual fate etc. should happen with a different invocation than .load;
+# maybe something like .load (reset)
 def make_char(name,data_dict,char=None):
   if char is None:
     char = Character(name,NPC=False)
-    char.fate.fate = data_dict['refresh']
+    manual_fate = data_dict.get('fate')
+    if manual_fate is not None:
+      char.fate.fate = manual_fate
+    else:
+      char.fate.fate = data_dict['refresh']
   for (stress_name,stress) in data_dict['stress'].items():
     name = stress_name.lower()
     if name=='hunger':
@@ -810,6 +816,9 @@ def make_char(name,data_dict,char=None):
     else:
       char.stress[name[0]] = StressTrack(stress_name,boxes=stress)
   char.fate.refresh = data_dict['refresh']
+  manual_fate = data_dict.get('fate')
+  if manual_fate is not None:
+    char.fate.fate = manual_fate
   return char
 
 
