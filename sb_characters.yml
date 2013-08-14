@@ -1,10 +1,11 @@
-nick:
+Nick:
     stress:
         physical: 4
         mental: 4
     refresh: 1
 
-mallory:
+
+Mallory:
     stress:
         physical: 8
         mental: 3
@@ -13,19 +14,21 @@ mallory:
     aliases:
         - chickenlittle
 
-alan:
+Alan:
     stress:
         physical: 4
         mental: 3
     refresh: 1
 
-mike:
-    stress:
-        physical: 3
-        mental: 4
-    refresh: 7
 
-reagle:
+Mike:
+    stress:
+        physical: 4
+        mental: 4
+    refresh: 5
+
+
+Reagle:
     stress:
         physical: 4
         mental: 3
@@ -33,13 +36,14 @@ reagle:
     aliases: 
         - eagle
 
-rayne:
+Rayne:
     stress:
         physical: 3
         mental: 4
     refresh: 1
 
-umbra:
+
+Umbra:
     stress:
         physical: 7
         mental: 3
@@ -47,14 +51,14 @@ umbra:
     aliases:
         - sevda
 
-vermis:
+Vermis:
     stress:
         physical: 4
         mental: 4
         hunger: 4
     refresh: 2
 
-bingo:
+Bingo:
     stress:
         physical: 3
         mental: 3
@@ -63,16 +67,21 @@ bingo:
         - johnny
         - jon
 
-christine:
+Christine:
     stress:
         physical: 3
         mental: 3
     refresh: 7
 
-jackson:
+
+Jackson:
     stress:
         physical: 4
         mental: 4
     refresh: 6
 
-
+Casey:
+    stress:
+        physical: 8
+        mental: 2
+    refresh: 3
