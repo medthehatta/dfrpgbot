@@ -525,7 +525,8 @@ class Character(object):
       return self
 
   def purge_aspects(self):
-    for s in self.aspects:
+    aspect_keys = self.aspects.keys()
+    for s in aspect_keys:
       if not self.aspects[s].persist:
         self.aspects.pop(s)
     return self
