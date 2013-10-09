@@ -64,7 +64,7 @@ def c_tag(GAME,args,character,nick,flags,src):
         amended = GAME.rolling.amend(GAME.lookup[str(nick)+"#nick"],"+2")
         return amended or character
     else:
-        return "{0} has no aspect {1}!".format(character,largs)
+        return "{0} has no aspect '{1}'!".format(character,largs)
 
 def c_stats(GAME,args,character,nick,flags,src): 
   flags = " ".join(flags)
@@ -514,7 +514,7 @@ class Character(object):
     return self
 
   def add_aspect(self,name,persist=False,flags=None):
-    if "#" not in flags and "f" not in flags and "Fragile" not in flags and "fragile" not in flags and "style" not in flags: flags.append("#") # one free invoke
+    if "#" not in flags and "f" not in flags and "Fragile" not in flags and "fragile" not in flags and "style" not in flags and "sticky" not in flags: flags.append("#") # one free invoke
     self.aspects[name.lower().strip()] = Aspect(name.lower().strip(),flags,persist)
     return self
 
