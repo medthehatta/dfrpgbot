@@ -131,11 +131,17 @@ def c_copy(GAME,args,character,nick,flags,src):
     else:
       return "Source character is invalid."
 
-def c_add_stress(GAME,args,character,nick,flags,src): return character.add_stress(flags[0],int(args))
+def c_add_stress(GAME,args,character,nick,flags,src): 
+  if character: 
+    return character.add_stress(flags[0],int(args))
 
-def c_del_stress(GAME,args,character,nick,flags,src): return character.del_stress(flags[0],int(args))
+def c_del_stress(GAME,args,character,nick,flags,src):
+  if character:
+    return character.del_stress(flags[0],int(args))
 
-def c_purge_stress(GAME,args,character,nick,flags,src): return character.purge_stress()
+def c_purge_stress(GAME,args,character,nick,flags,src):
+  if character:
+    return character.purge_stress()
 
 def c_whosturn(GAME,args,character,nick,flags,src):
   if GAME.order.keys()==[]: GAME.order[src]=TurnOrdering()
