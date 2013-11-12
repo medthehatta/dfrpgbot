@@ -15,6 +15,19 @@ def c_cleanup(GAME,args,character,nick,flags,src):
   GAME.cleanup()
   return "Stress, temporary aspects, and turn order cleared."
 
+def c_add_count(GAME,args,character,nick,flags,src):
+  modifiers = list(map(int,re.findall(r'(?:\+|\-)[0-9]+',args)))
+  total = sum(modifiers)
+
+  if character is not None:
+    if character.count + total > 0:
+      character.count += total
+      return character.status()
+    else:
+      return "Can't have fewer than 0 active members."
+  else:
+    return "Need target character."
+
 def c_add_npc(GAME,args,character,nick,flags,src): return GAME.add(GAME.mkcharacter(args),nick)
 
 def c_del_npc(GAME,args,character,nick,flags,src): 
@@ -483,6 +496,7 @@ class Character(object):
   """
   def __init__(self,name,NPC=True):
     self.name=str(name)
+    self.count = 1
     self.NPC=NPC
     self.fate = Fate(3)
     self.stress = \
@@ -499,16 +513,26 @@ class Character(object):
       return (list("PM")+[s.shortname]).index(s.shortname)
     def aspectpp(asp): return "[{0}]".format(asp)
 
+    name_s = self.name.upper()
+    stress_s = dlim.join(map(str, sorted(self.stress.values(),
+                                         key=stress_order)))
+    fate_s = str(self.fate)
+    count_s = '(N) ' + 'o '*self.count
+    count_s = '(N) t'
+    aspect_s = "  ".join(map(aspectpp, self.aspects.values()))
+
     if self.NPC:
-      stat = [self.name.upper(),
-              str(self.fate),
-              "  ".join(map(aspectpp, self.aspects.values()))]
+      if self.count > 1:
+        stat = [name_s, fate_s, count_s, aspect_s]
+      else:
+        stat = [name_s, fate_s, aspect_s]
+
     else:
-      stat = [self.name.upper(),
-              dlim.join(map(str,
-                sorted(self.stress.values(),key=stress_order))),
-              str(self.fate),
-              "  ".join(map(aspectpp, self.aspects.values()))]
+      if self.count > 1:
+        stat = [name_s, stress_s, fate_s, count_s, aspect_s]
+      else:
+        stat = [name_s, stress_s, fate_s, aspect_s]
+
     return dlim.join(stat[:-1])+"\n"+stat[-1]
 
   def conflict_cleanup(self):
