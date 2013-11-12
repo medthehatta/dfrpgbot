@@ -277,6 +277,7 @@ COMMANDS = {\
 ,"claim_turn":c_claim
 ,"new_order":c_new_order
 ,"del_order":c_del_whole_order
+,"numbers":c_add_count
 }
 
 
@@ -518,7 +519,6 @@ class Character(object):
                                          key=stress_order)))
     fate_s = str(self.fate)
     count_s = '(N) ' + 'o '*self.count
-    count_s = '(N) t'
     aspect_s = "  ".join(map(aspectpp, self.aspects.values()))
 
     if self.NPC:
