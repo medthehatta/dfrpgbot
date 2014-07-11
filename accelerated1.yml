@@ -1,0 +1,17 @@
+title: 'FATE Accelerated Game 1'
+
+characters: 
+    load: accel1.yml
+    pickle: accel1.pkl
+
+dice:
+    snark: snark.yml
+
+order:
+    pickle: accel1_order.pkl
+
+aspects:
+    transformers: flag_transformers.yml
+
+
+
