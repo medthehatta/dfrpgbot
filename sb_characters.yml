@@ -85,3 +85,10 @@ Casey:
         physical: 8
         mental: 2
     refresh: 3
+
+Kai:
+    stress:
+        physical: 6
+        mental: 3
+    refresh: 3
+

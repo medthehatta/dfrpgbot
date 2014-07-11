@@ -120,5 +120,10 @@ fluffums:
         - dog
         - fluff
 
+kelly:
+    stress:
+        physical: 2
+        mental: 2
+    refresh: 1
 
 
