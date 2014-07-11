@@ -30,11 +30,22 @@ def c_add_count(GAME,args,character,nick,flags,src):
 
 def c_add_npc(GAME,args,character,nick,flags,src): return GAME.add(GAME.mkcharacter(args),nick)
 
+def c_add_simplepc(GAME,args,character,nick,flags,src): return GAME.add(GAME.mkcharacter(args,NPC=False,stress={'s':StressTrack("stress",boxes=3)}),nick)
+
 def c_del_npc(GAME,args,character,nick,flags,src): 
   # lookup by argument first, so you don't need @
   character = GAME.lookup[args] or character
   # remove if the character is an npc
   if character and character.NPC: 
+    GAME.characters.remove(character)
+    GAME.lookup.pop(character)
+    return "Removed {0}".format(character)
+
+def c_del_simplepc(GAME,args,character,nick,flags,src): 
+  # lookup by argument first, so you don't need @
+  character = GAME.lookup[args] or character
+  # remove if the character is an npc
+  if character and not character.NPC: 
     GAME.characters.remove(character)
     GAME.lookup.pop(character)
     return "Removed {0}".format(character)
@@ -88,13 +99,16 @@ def c_stats(GAME,args,character,nick,flags,src):
   elif "pc" in flags or "pcs" in flags:
     return c_show_pcs(GAME,args,character,nick,flags,src)
   else:
-    character = GAME.lookup[args] or character
-    if character is None:
+    selected = GAME.lookup[args] or character
+    if selected is None:
       return "You are not playing a character yet.  Do .i'm <character> first."
     else:
-      return character.status()
+      return selected.status()
 
 def c_all_stats(GAME,args,character,nick,flags,src): return "\n".join(sorted([str(c.status()) for c in GAME.characters]))
+
+def c_whoami(GAME,args,character,nick,flags,src): 
+    return character.name
 
 def c_show_npcs(GAME,args,character,nick,flags,src): 
   statuses = "\n".join([str(c.status()) for c in GAME.characters if c.NPC])
@@ -204,13 +218,16 @@ def c_reset_order(GAME,args,character,nick,flags,src):
     return GAME.order[src].stop()
 
 def c_claim(GAME,args,character,nick,flags,src): 
-  if GAME.order.keys()==[]: GAME.order[src]=TurnOrdering()
-  character = GAME.lookup[args] or character
-  GAME.order[src].claim_turn(character)
-  if GAME.order[src].index!=None:
-    return "{0}: {1}".format(GAME.lookup.nick(GAME.order[src].current()) or GAME.order[src].current(),GAME.order[src])
-  else:
-    return str(GAME.order[src])
+  try:
+    if list(GAME.order.keys())==[]: GAME.order[src]=TurnOrdering()
+    selected = GAME.lookup[args] or character
+    GAME.order[src].claim_turn(selected)
+    if GAME.order[src].index!=None:
+      return "{0}: {1}".format(GAME.lookup.nick(GAME.order[src].current()) or GAME.order[src].current(),GAME.order[src])
+    else:
+      return str(GAME.order[src])
+  except Exception as e:
+    return str(e)
 
 def c_stop_order(GAME,args,character,nick,flags,src):
   if GAME.order.keys()==[]: GAME.order[src]=TurnOrdering()
@@ -230,9 +247,12 @@ COMMANDS = {\
 "clean":c_cleanup
 ,"pcs":c_show_pcs
 ,"npcs":c_show_npcs
+,"pc":c_add_simplepc
+,"pc+":c_add_simplepc
 ,"npc+":c_add_npc
 ,"npc":c_add_npc
 ,"npc-":c_del_npc
+,"pc-":c_del_simplepc
 ,"npc#":c_npc_purge
 ,"npc!":c_npc_purge
 ,"roll":c_roll
@@ -249,6 +269,7 @@ COMMANDS = {\
 ,"stats":c_stats
 ,"status":c_stats
 ,"all":c_all_stats
+,"whoami":c_whoami
 ,"fp+":c_add_fp
 ,"fp-":c_del_fp
 ,"refresh":c_refresh
@@ -454,6 +475,9 @@ class TurnOrdering(object):
     """
     if self.index!=None:
       # look up the ch in the order
+      foo = [s[1] for s in self.ordering]
+      if ch not in foo:
+        raise ValueError(str(type(ch)) + " " + str(ch.name) + " not in:\n" + str(list(map(str,foo))))
       chi = [s[1] for s in self.ordering].index(ch)
       # adjust the index for the list with a missing element
       if chi<=self.index: 
@@ -495,14 +519,12 @@ class Character(object):
   """
   One DFRPG character, PC or NPC
   """
-  def __init__(self,name,NPC=True):
+  def __init__(self,name,NPC=True,stress=dict([(n[0].lower(),StressTrack(n)) for n in ["physical","mental"]])):
     self.name=str(name)
     self.count = 1
     self.NPC=NPC
     self.fate = Fate(3)
-    self.stress = \
-      dict([(n[0].lower(),StressTrack(n)) 
-        for n in ["physical","mental"]])
+    self.stress = stress
     self.aspects = {}
 
   def __str__(self):
@@ -624,12 +646,13 @@ class Lookup(object):
 
   def add(self,character,player=None):
     "Adds a character to the game"
-    if character not in self.characters: 
-      self.characters.append(character)
-      self._aliases[str(character).lower()]=character
-      if player:
-        self.alias_nick(str(character),player)
-      return character
+    if str(character):
+        if character not in self.characters: 
+          self.characters.append(character)
+          self._aliases[str(character).lower()]=character
+          if player:
+            self.alias_nick(str(character),player)
+          return character
 
   def alias(self,target,alias):
     "Adds an alias for an already existing character"
@@ -718,9 +741,11 @@ class FATEGAME(object):
     else:
       self.order = order
 
-  def mkcharacter(self,name):
+
+      
+  def mkcharacter(self,name,NPC=True,stress=dict([(n[0].lower(),StressTrack(n)) for n in ["physical","mental"]])):
     """Hack to let the dfrpgcmds access the Character class"""
-    return Character(name)
+    return Character(name, NPC=NPC, stress=stress)
 
   def add(self,character,nick):
     self.lookup.add(character)
@@ -883,21 +908,22 @@ def load_game(GAME_,args,character,nick,flags,src):
   characters_file = config['characters'].get('load')
   if characters_file is not None:
     char_load = yaml.load(open(os.path.join(PATH,characters_file)))
-    for (cname,c) in char_load.items():
-      basechar = lookup_load[cname] or None
-
-      if basechar is not None:
-        # mutate character data
-        make_char(cname,c,basechar)
-      else:
-        # make new character
-        num_new_chars += 1
-        lookup_load.add(make_char(cname,c,basechar)) 
-
-      # add aliases, if exist
-      if c.get('aliases'):
-        for a in c.get('aliases'):
-          lookup_load.alias(cname,a)
+    if char_load:
+      for (cname,c) in char_load.items():
+        basechar = lookup_load[cname] or None
+  
+        if basechar is not None:
+          # mutate character data
+          make_char(cname,c,basechar)
+        else:
+          # make new character
+          num_new_chars += 1
+          lookup_load.add(make_char(cname,c,basechar)) 
+  
+        # add aliases, if exist
+        if c.get('aliases'):
+          for a in c.get('aliases'):
+            lookup_load.alias(cname,a)
     
   # Load in the last turn order
   order_file = config['order'].get('pickle')
